@@ -1,39 +1,18 @@
-import { createFileRoute } from '@tanstack/react-router'
-import logo from '../logo.svg'
+import BaseForm from "@/components/test-forms/BaseForm";
+import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute('/')({
+export const Route = createFileRoute("/")({
   component: App,
-})
+});
 
 function App() {
   return (
-    <div className="text-center">
-      <header className="min-h-screen flex flex-col items-center justify-center bg-[#282c34] text-white text-[calc(10px+2vmin)]">
-        <img
-          src={logo}
-          className="h-[40vmin] pointer-events-none animate-[spin_20s_linear_infinite]"
-          alt="logo"
-        />
-        <p>
-          Edit <code>src/routes/index.tsx</code> and save to reload.
-        </p>
-        <a
-          className="text-[#61dafb] hover:underline"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-        <a
-          className="text-[#61dafb] hover:underline"
-          href="https://tanstack.com"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn TanStack
-        </a>
-      </header>
-    </div>
-  )
+    <section className="min-h-screen flex flex-col items-center pt-4 bg-[#282c34] text-white text-[calc(10px+2vmin)]">
+      <h1>Hello world</h1>
+      <p>Tan Stack form Practice</p>
+      <div className="w-full max-w-md py-8 px-8 sm:px-0">
+        <BaseForm />
+      </div>
+    </section>
+  );
 }
