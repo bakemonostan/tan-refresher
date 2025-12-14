@@ -1,4 +1,3 @@
-import { Controller, type FieldValues } from "react-hook-form";
 import {
   Field,
   FieldDescription,
@@ -7,46 +6,46 @@ import {
   FieldLabel,
   FieldSet,
 } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Controller, type FieldValues } from "react-hook-form";
 import type { TextFieldProps } from "./types";
 
-interface FieldInputProps<T extends FieldValues> extends TextFieldProps<T> {
-  type: "text" | "email" | "password" | "number";
+interface FieldTextareaProps<T extends FieldValues> extends TextFieldProps<T> {
+  rows?: number;
 }
 
 /**
- * Form field component for text-based inputs
+ * Form field component for textarea inputs
  * @param control - React Hook Form control object
  * @param name - Field name from form schema
  * @param label - Field label text
  * @param description - Optional field description
  * @param htmlFor - HTML for attribute
  * @param inputId - Input element ID
- * @param type - Input type (text, email, password, number)
+ * @param rows - Number of textarea rows
  * @param placeholder - Placeholder text
  * @example
  * ```tsx
- * <FieldInput
+ * <FieldTextarea
  *   control={form.control}
- *   name="email"
- *   htmlFor="email"
- *   inputId="email"
- *   label="Email"
- *   type="email"
- *   placeholder="Enter your email"
+ *   name="description"
+ *   htmlFor="description"
+ *   inputId="description"
+ *   label="Description"
+ *   rows={5}
  * />
  * ```
  */
-export function FieldInput<T extends FieldValues>({
-  control,
+export function FieldTextarea<T extends FieldValues>({
   name,
+  control,
   label = "Label",
-  description,
   htmlFor,
   inputId,
-  type = "text",
+  rows = 20,
   placeholder = "Placeholder text",
-}: FieldInputProps<T>) {
+  description,
+}: FieldTextareaProps<T>) {
   return (
     <FieldSet>
       <FieldGroup>
@@ -56,11 +55,12 @@ export function FieldInput<T extends FieldValues>({
           render={({ field, fieldState }) => (
             <Field>
               <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>
-              <Input
+              <Textarea
                 {...field}
                 id={inputId}
-                type={type}
                 placeholder={placeholder}
+                rows={rows}
+                className="resize-none min-h-28"
               />
               <FieldDescription>{description}</FieldDescription>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

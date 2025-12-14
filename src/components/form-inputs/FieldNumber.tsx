@@ -8,45 +8,45 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import type { TextFieldProps } from "./types";
-
-interface FieldInputProps<T extends FieldValues> extends TextFieldProps<T> {
-  type: "text" | "email" | "password" | "number";
-}
+import type { NumberFieldProps } from "./types";
 
 /**
- * Form field component for text-based inputs
+ * Form field component for number inputs
  * @param control - React Hook Form control object
  * @param name - Field name from form schema
  * @param label - Field label text
  * @param description - Optional field description
  * @param htmlFor - HTML for attribute
  * @param inputId - Input element ID
- * @param type - Input type (text, email, password, number)
  * @param placeholder - Placeholder text
+ * @param min - Minimum value
+ * @param max - Maximum value
+ * @param step - Step increment
  * @example
  * ```tsx
- * <FieldInput
+ * <FieldNumber
  *   control={form.control}
- *   name="email"
- *   htmlFor="email"
- *   inputId="email"
- *   label="Email"
- *   type="email"
- *   placeholder="Enter your email"
+ *   name="age"
+ *   htmlFor="age"
+ *   inputId="age"
+ *   label="Age"
+ *   min={0}
+ *   max={120}
  * />
  * ```
  */
-export function FieldInput<T extends FieldValues>({
+export function FieldNumber<T extends FieldValues>({
   control,
   name,
   label = "Label",
   description,
   htmlFor,
   inputId,
-  type = "text",
-  placeholder = "Placeholder text",
-}: FieldInputProps<T>) {
+  placeholder = "Enter number",
+  min,
+  max,
+  step,
+}: NumberFieldProps<T>) {
   return (
     <FieldSet>
       <FieldGroup>
@@ -59,8 +59,12 @@ export function FieldInput<T extends FieldValues>({
               <Input
                 {...field}
                 id={inputId}
-                type={type}
+                type="number"
                 placeholder={placeholder}
+                min={min}
+                max={max}
+                step={step}
+                onChange={(e) => field.onChange(e.target.valueAsNumber)}
               />
               <FieldDescription>{description}</FieldDescription>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -71,3 +75,4 @@ export function FieldInput<T extends FieldValues>({
     </FieldSet>
   );
 }
+
