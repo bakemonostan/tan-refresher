@@ -1,5 +1,7 @@
 import * as z from "zod";
 
+const fileSchema = z.instanceof(File, { message: "Please upload a file." });
+
 export const baseFormSchema = z.object({
   title: z
     .string({ error: "Title is required." })
@@ -43,6 +45,11 @@ export const baseFormSchema = z.object({
     .refine((data) => data.from && data.to, {
       error: "Please select both start and end dates.",
     }),
+  profilePicture: fileSchema,
+  gallery: z
+    .array(fileSchema)
+    .min(1, "Please upload at least 1 image.")
+    .max(3, "You can upload up to 3 images."),
 });
 
 export type BaseFormSchema = z.infer<typeof baseFormSchema>;

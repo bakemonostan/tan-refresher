@@ -9,5 +9,6 @@ export { FieldNumber } from "./FieldNumber";
 export { FieldDatePicker } from "./FieldDatePicker";
 export { FieldPinInput } from "./FieldPinInput";
 export { FieldDateRangePicker } from "./FieldDateRangePicker";
+export { FieldFileUpload } from "./FieldFileUpload";
 export type * from "./types";
 

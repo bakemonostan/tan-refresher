@@ -121,3 +121,17 @@ export interface DateRangePickerFieldProps<
   /** Number of months to display */
   numberOfMonths?: number;
 }
+
+/**
+ * Props for file upload field
+ */
+export interface FileUploadFieldProps<
+  T extends FieldValues,
+> extends BaseFieldProps<T> {
+  /** Accept file types */
+  accept?: Record<string, string[]>;
+  /** Maximum number of files */
+  maxFiles?: number;
+  /** Whether multiple files are allowed */
+  multiple?: boolean;
+}

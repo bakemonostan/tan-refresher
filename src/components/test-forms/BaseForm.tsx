@@ -12,11 +12,16 @@ import { FieldNumber } from "../form-inputs/FieldNumber";
 import { FieldDatePicker } from "../form-inputs/FieldDatePicker";
 import { FieldPinInput } from "../form-inputs/FieldPinInput";
 import { FieldDateRangePicker } from "../form-inputs/FieldDateRangePicker";
+import { FieldFileUpload } from "../form-inputs/FieldFileUpload";
 import { baseFormSchema, type BaseFormSchema } from "./schema/baseFormSchema";
 
 export default function BaseForm() {
   const form = useForm<BaseFormSchema>({
     resolver: zodResolver(baseFormSchema),
+    defaultValues: {
+      profilePicture: null as any,
+      gallery: [] as any,
+    },
   });
 
   const onSubmit = (data: BaseFormSchema) => {
@@ -102,6 +107,21 @@ export default function BaseForm() {
         label="Date Range"
         placeholder="Select start and end dates"
         numberOfMonths={2}
+      />
+      <FieldFileUpload
+        control={form.control}
+        name="profilePicture"
+        label="Profile Picture"
+        description="Upload a single profile picture"
+        maxFiles={1}
+      />
+      <FieldFileUpload
+        control={form.control}
+        name="gallery"
+        label="Gallery Images"
+        description="Upload up to 3 images"
+        maxFiles={3}
+        multiple
       />
       <div>
         <Button type="submit">Submit</Button>
