@@ -10,32 +10,61 @@ import {
 import { cn } from "@/lib/utils";
 import { ImageIcon, XCircleIcon } from "lucide-react";
 import Dropzone from "react-dropzone";
+import { Progress } from "@/components/ui/progress";
+import { Spinner } from "@/components/ui/spinner";
+import { useState } from "react";
 import type { FileUploadFieldProps } from "./types";
 
-/**
- * Image preview component with remove button
- */
 const ImagePreview = ({
   url,
   onRemove,
+  isDeleting = false,
+  uploadProgress,
 }: {
   url: string;
   onRemove: () => void;
-}) => (
-  <div className="relative aspect-square">
-    <button
-      type="button"
-      className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 z-10"
-      onClick={onRemove}>
-      <XCircleIcon className="h-5 w-5 fill-primary text-primary-foreground" />
-    </button>
-    <img
-      src={url}
-      alt="Upload preview"
-      className="border border-border h-full w-full rounded-md object-cover"
-    />
-  </div>
-);
+  isDeleting?: boolean;
+  uploadProgress?: number;
+}) => {
+  const isUploading = uploadProgress !== undefined && uploadProgress < 100;
+
+  return (
+    <div className="relative aspect-square group">
+      <button
+        type="button"
+        className={cn(
+          "absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 z-20 transition-opacity",
+          isDeleting ? "opacity-0 pointer-events-none" : "opacity-100"
+        )}
+        onClick={onRemove}>
+        <XCircleIcon className="h-5 w-5 fill-primary text-primary-foreground" />
+      </button>
+      {isDeleting && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md z-10">
+          <Spinner className="h-6 w-6" />
+        </div>
+      )}
+      <div className="relative h-full w-full">
+        <img
+          src={url}
+          alt="Upload preview"
+          className={cn(
+            "border border-border h-full w-full rounded-md object-cover",
+            (isUploading || isDeleting) && "opacity-50"
+          )}
+        />
+        {isUploading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/60 rounded-md">
+            <Progress value={uploadProgress} className="w-3/4 mb-2" />
+            <span className="text-xs font-medium text-foreground">
+              {uploadProgress}%
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 /**
  * Form field component for file uploads with drag and drop
@@ -77,6 +106,32 @@ export function FieldFileUpload<T extends FieldValues>({
   maxFiles = 1,
   multiple = false,
 }: FileUploadFieldProps<T>) {
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
+    {}
+  );
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+
+  const simulateUpload = (fileId: string) => {
+    setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }));
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 10;
+      if (progress >= 100) {
+        clearInterval(interval);
+        setUploadProgress((prev) => {
+          const newPrev = { ...prev };
+          delete newPrev[fileId];
+          return newPrev;
+        });
+      } else {
+        setUploadProgress((prev) => ({
+          ...prev,
+          [fileId]: progress,
+        }));
+      }
+    }, 200);
+  };
+
   return (
     <FieldSet>
       <FieldGroup>
@@ -91,6 +146,10 @@ export function FieldFileUpload<T extends FieldValues>({
                 : [files]
               : [];
 
+            const fileIds = fileArray.map(
+              (file, index) => `${file.name}-${file.size}-${index}`
+            );
+
             const handleDrop = (acceptedFiles: File[]) => {
               if (multiple) {
                 const currentFiles = fileArray;
@@ -99,18 +158,38 @@ export function FieldFileUpload<T extends FieldValues>({
                   ...acceptedFiles,
                 ].slice(0, maxFiles);
                 field.onChange(newFiles);
+                const startIndex = currentFiles.length;
+                acceptedFiles.forEach((file, i) => {
+                  if (startIndex + i < maxFiles) {
+                    const fileId = `${file.name}-${file.size}-${startIndex + i}`;
+                    simulateUpload(fileId);
+                  }
+                });
               } else {
                 field.onChange(acceptedFiles[0] || null);
+                if (acceptedFiles[0]) {
+                  const file = acceptedFiles[0];
+                  const fileId = `${file.name}-${file.size}-0`;
+                  simulateUpload(fileId);
+                }
               }
             };
 
-            const handleRemove = (index: number) => {
+            const handleRemove = async (index: number) => {
+              const fileId = fileIds[index];
+              setDeletingIds((prev) => new Set(prev).add(fileId));
+              await new Promise((resolve) => setTimeout(resolve, 500));
               if (multiple) {
                 const newFiles = fileArray.filter((_, i) => i !== index);
                 field.onChange(newFiles.length > 0 ? newFiles : null);
               } else {
                 field.onChange(null);
               }
+              setDeletingIds((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(fileId);
+                return newSet;
+              });
             };
 
             const remainingSlots = maxFiles - fileArray.length;
@@ -118,17 +197,23 @@ export function FieldFileUpload<T extends FieldValues>({
             return (
               <Field>
                 <FieldLabel>{label}</FieldLabel>
-                <div className={cn(
-                  "grid gap-3",
-                  maxFiles === 1 ? "grid-cols-1" : "grid-cols-3"
-                )}>
-                  {fileArray.map((file, index) => (
-                    <ImagePreview
-                      key={index}
-                      url={URL.createObjectURL(file)}
-                      onRemove={() => handleRemove(index)}
-                    />
-                  ))}
+                <div
+                  className={cn(
+                    "grid gap-3",
+                    maxFiles === 1 ? "grid-cols-1" : "grid-cols-3"
+                  )}>
+                  {fileArray.map((file, index) => {
+                    const fileId = fileIds[index];
+                    return (
+                      <ImagePreview
+                        key={fileId}
+                        url={URL.createObjectURL(file)}
+                        onRemove={() => handleRemove(index)}
+                        isDeleting={deletingIds.has(fileId)}
+                        uploadProgress={uploadProgress[fileId]}
+                      />
+                    );
+                  })}
                   {remainingSlots > 0 &&
                     Array.from({ length: remainingSlots }).map((_, index) => (
                       <Dropzone
